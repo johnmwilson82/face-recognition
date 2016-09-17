@@ -1,0 +1,15 @@
+[package]
+name = "face-recognition"
+version = "0.1.0"
+authors = ["John Wilson <johnmwilson82@gmail.com>"]
+
+[dependencies]
+GSL = "0.4.28"
+image = "*"
+gdk-pixbuf = "*"
+gdk-pixbuf-sys = "*"
+
+[dependencies.gtk]
+version = "*"
+features = ["v3_10"]
+
