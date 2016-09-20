@@ -3,21 +3,23 @@ extern crate image;
 extern crate gdk_pixbuf;
 extern crate gdk_pixbuf_sys;
 
-use self::image::{GrayImage, ImageBuffer};
+use self::image::GrayImage;
 
-use std::fs::File;
+use std::fs::{self, File, DirEntry, ReadDir};
 use std::io::{BufReader, Read};
 use std::str;
 use std::str::FromStr;
 use std::iter;
-use::std::ops::Deref;
+use std::path::Path;
 
 use self::gdk_pixbuf::Pixbuf;
 
-pub struct FaceImage {
+
+struct FaceImage {
     data_mat: rgsl::MatrixF32,
     width: u32,
-    height: u32
+    height: u32,
+    class_id: u32
 }
 
 impl FaceImage {
@@ -39,13 +41,16 @@ impl FaceImage {
         imgbuf
     }
 
-    pub unsafe fn to_gdk_pixbuf(&self) -> Option<Pixbuf> {
+    pub fn to_gdk_pixbuf(&self) -> Option<Pixbuf> {
         // Convert the greyscale image buffer to RGB
-        let v: Vec<u8> = self.to_image().into_raw();
-        let v_rgb = v.into_iter().flat_map(|x| iter::repeat(x).take(3)).collect::<Vec<u8>>();
+        let v: Vec<u8> = self.to_image()
+                             .into_raw()
+                             .into_iter()
+                             .flat_map(|x| iter::repeat(x).take(3))
+                             .collect::<Vec<u8>>();
 
         let pixbuf = Pixbuf::new_from_vec(
-            v_rgb,
+            v,
             self::gdk_pixbuf_sys::GDK_COLORSPACE_RGB,
             false, 8, self.width as i32, self.height as i32, self.width as i32 * 3);
         Some(pixbuf)
@@ -72,7 +77,7 @@ impl FaceImage {
         pixel_mat
     }
 
-    pub fn new_from_pgm(file_path: &str) -> FaceImage {
+    pub fn new_from_pgm(file_path: &Path, class_id: u32) -> FaceImage {
         let mut file = BufReader::new(File::open(file_path).unwrap());
 
         let mut file_data = Vec::<u8>::new();
@@ -103,7 +108,7 @@ impl FaceImage {
             };
         };
 
-        let ref magic = header_data[0];
+        assert!(header_data[0] == "P5");
         let width = u32::from_str(&header_data[1]).unwrap();
         let height = u32::from_str(&header_data[2]).unwrap();
         let maxval = u32::from_str(&header_data[3]).unwrap();
@@ -113,12 +118,62 @@ impl FaceImage {
         let mut pixel_mat = FaceImage::matrix_from_pixel_data(
                                 &width, &height, &maxval, pixel_data);
 
-        println!("Opened pgm, size {}, {}, maxval {}", width, height, maxval);
+        println!("Opened pgm {}, size {}, {}, maxval {}",
+                file_path.display(),
+                width, height, maxval);
 
         return FaceImage {
             data_mat: pixel_mat,
             width: width,
-            height: height
+            height: height,
+            class_id: class_id
         };
+    }
+}
+
+pub struct FaceCatalogue {
+    face_images: Vec<FaceImage>,
+    selected: usize
+}
+
+impl FaceCatalogue {
+    pub fn new(dir: &Path) -> FaceCatalogue {
+        let mut face_images = Vec::<FaceImage>::new();
+        let mut class_id = 0;
+        for model_dir in fs::read_dir(dir).unwrap() {
+            let dir_path = model_dir.unwrap().path();
+            if !dir_path.is_dir() {
+                continue;
+            }
+            let dir_path2 = dir_path.clone();
+            let dir_name = dir_path2.file_name().unwrap().to_str().unwrap();
+            for file in fs::read_dir(dir_path).unwrap() {
+                face_images.push(FaceImage::new_from_pgm(&file.unwrap().path(), class_id));
+            }
+            class_id += 1;
+        }
+
+        FaceCatalogue {
+            face_images: face_images,
+            selected: 0
+        }
+    }
+
+    pub fn next(&mut self) {
+        self.selected += 1;
+        self.selected %= self.face_images.len();
+    }
+
+    pub fn prev(&mut self) {
+        if self.selected == 0 {
+            self.selected = self.face_images.len() - 1;
+        } else
+        {
+            self.selected -= 1;
+        }
+    }
+
+    pub fn get_sel_gdk_pixbuf(&self) -> Option<Pixbuf> {
+        self.face_images[self.selected].to_gdk_pixbuf()
     }
 }
