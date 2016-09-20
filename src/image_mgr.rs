@@ -6,11 +6,13 @@ extern crate gdk_pixbuf_sys;
 use self::image::GrayImage;
 
 use std::fs::{self, File, DirEntry, ReadDir};
-use std::io::{BufReader, Read};
+use std::io::{BufReader, Read, Result};
+use std::collections::HashMap;
 use std::str;
 use std::str::FromStr;
 use std::iter;
 use std::path::Path;
+use std::ffi::OsStr;
 
 use self::gdk_pixbuf::Pixbuf;
 
@@ -133,30 +135,34 @@ impl FaceImage {
 
 pub struct FaceCatalogue {
     face_images: Vec<FaceImage>,
+    names_map: HashMap<u32, String>,
     selected: usize
 }
 
 impl FaceCatalogue {
-    pub fn new(dir: &Path) -> FaceCatalogue {
+    pub fn new(dir: &Path) -> Result<FaceCatalogue> {
         let mut face_images = Vec::<FaceImage>::new();
-        let mut class_id = 0;
-        for model_dir in fs::read_dir(dir).unwrap() {
-            let dir_path = model_dir.unwrap().path();
+        let mut names_map = HashMap::new();
+        let mut class_id: u32 = 0;
+        for model_dir in try!(fs::read_dir(dir)) {
+            let dir_path = try!(model_dir).path();
             if !dir_path.is_dir() {
                 continue;
             }
             let dir_path2 = dir_path.clone();
-            let dir_name = dir_path2.file_name().unwrap().to_str().unwrap();
-            for file in fs::read_dir(dir_path).unwrap() {
+            let dir_name = dir_path2.file_name().and_then(OsStr::to_str);
+            names_map.insert(class_id, String::from(dir_name.unwrap_or("unknown")));
+            for file in try!(fs::read_dir(dir_path)) {
                 face_images.push(FaceImage::new_from_pgm(&file.unwrap().path(), class_id));
             }
             class_id += 1;
         }
 
-        FaceCatalogue {
+        Ok(FaceCatalogue {
             face_images: face_images,
+            names_map: names_map,
             selected: 0
-        }
+        })
     }
 
     pub fn next(&mut self) {

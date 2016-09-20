@@ -64,7 +64,9 @@ fn main() {
         return;
     }
 
-    let mut face_catalogue = image_mgr::FaceCatalogue::new(Path::new("/home/john/git/face-recognition/data/orl_faces"));
+    let mut face_catalogue = image_mgr::FaceCatalogue::new(
+                                Path::new("/home/john/git/face-recognition/data/orl_faces"))
+                                .expect("Couldn't load face catalogue");
 
     let mut gui = Gui::new("/home/john/git/face-recognition/src/ui.glade", RefCell::new(face_catalogue));
 
