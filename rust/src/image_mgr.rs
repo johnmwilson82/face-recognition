@@ -79,6 +79,14 @@ impl FaceImage {
         pixel_mat
     }
 
+    pub fn to_vector(&self) -> Option<rgsl::VectorF32> {
+        let mut v = Vec::<f32>::new();
+        for row in (0..self.height).map(|i| self.data_mat.get_row(i as usize)) {
+            v.append(row); //.expect("Problem extracting row from data_mat"));
+        }
+        rgsl::VectorF32::from_slice(v.as_mut_slice())
+    }
+
     pub fn new_from_pgm(file_path: &Path, class_id: u32) -> FaceImage {
         let mut file = BufReader::new(File::open(file_path).unwrap());
 

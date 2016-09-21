@@ -7,5 +7,5 @@ struct EigenFaces {
 impl EigenFaces {
     pub fn new(catalogue: &image_mgr::FaceCatalogue) -> EigenFaces {
         // Generate L matrix
-        //hello
+        
     }
