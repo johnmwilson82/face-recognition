@@ -4,7 +4,7 @@ find_package(PkgConfig)
 pkg_search_module(GTK3 REQUIRED gtk+-3.0)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions(-std=c++11)
+    add_definitions(-std=c++14)
 endif()
 
 set(SRC

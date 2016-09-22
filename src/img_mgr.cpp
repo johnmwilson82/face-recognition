@@ -5,8 +5,9 @@
 #include "img_mgr.h"
 #include <cstdio>
 #include <cstdlib>
+#include <dirent.h>
 
-FaceImage::FaceImage(std::string path, uint32_t class_id) :
+FaceImage::FaceImage(const std::string &path, uint32_t class_id) :
     m_class_id(class_id)
 {
     std::ifstream f(path.c_str(), std::ios_base::binary);
@@ -23,7 +24,6 @@ FaceImage::FaceImage(std::string path, uint32_t class_id) :
         throw std::runtime_error("Invalid file type");
     }
 
-    uint32_t width, height;
     f >> m_width >> m_height >> m_maxval;
     printf("Loading PGM %d x %d, maxval = %d\n", m_width, m_height, m_maxval);
 
@@ -51,18 +51,52 @@ void FaceImage::load_from_pixel_data(const uint8_t* buf)
     }
 }
 
-void FaceImage::to_rgb_buffer(uint8_t** buf, uint32_t* size)
+std::unique_ptr<uint8_t[]> FaceImage::to_rgb_buffer() const
 {
     int sz = 0;
-    *buf = new uint8_t[m_height * m_width * 3];
-    uint8_t* p = *buf;
+    auto buf = std::make_unique<uint8_t[]> (m_height * m_width * 3);
     for (uint32_t j = 0; j < m_height; j++) {
         for (uint32_t i = 0; i < m_width; i++) {
-            *(p++) = (uint8_t)(m_data_mat(i, j) * m_maxval);
-            *(p++) = (uint8_t)(m_data_mat(i, j) * m_maxval);
-            *(p++) = (uint8_t)(m_data_mat(i, j) * m_maxval);
+            buf[sz] = (uint8_t)(m_data_mat(i, j) * m_maxval);
+            buf[sz+1] = (uint8_t)(m_data_mat(i, j) * m_maxval);
+            buf[sz+2] = (uint8_t)(m_data_mat(i, j) * m_maxval);
             sz += 3;
         }
     }
-    *size = sz;
+    return buf;
+}
+    
+FaceCatalogue::FaceCatalogue(const std::string &path)
+{
+    DIR *dir, *dir2;
+    struct dirent *ent, *ent2;
+    char buf1[1024], buf2[1024];
+    uint32_t class_id = 0;
+
+    if ((dir = opendir(path.c_str())) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            sprintf(buf1, "%s/%s", path.c_str(), ent->d_name);
+            if ((dir2 = opendir(buf1)) != NULL) {
+                while ((ent2 = readdir(dir2)) != NULL) {
+                    sprintf(buf2, "%s/%s", buf1, ent2->d_name);
+                    try {
+                        FaceImage* fi = new FaceImage(buf2, class_id);
+                        m_face_images.push_back(fi);
+                    } catch(...) {
+                        continue;
+                    }
+                }
+                class_id++;
+            }
+        }
+    }
+}
+
+FaceCatalogue::~FaceCatalogue()
+{
+    for (auto fi : m_face_images)
+    {
+        printf("Deleter\n") ;
+        delete fi;
+    }
 }

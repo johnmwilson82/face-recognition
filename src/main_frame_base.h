@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Sep  9 2016)
+// C++ code generated with wxFormBuilder (version Sep 22 2016)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -38,6 +38,8 @@ class MainFrameBase : public wxDialog
 		// Virtual event handlers, overide them in your derived class
 		virtual void on_init( wxInitDialogEvent& event ) { event.Skip(); }
 		virtual void on_paint( wxPaintEvent& event ) { event.Skip(); }
+		virtual void on_prev( wxCommandEvent& event ) { event.Skip(); }
+		virtual void on_next( wxCommandEvent& event ) { event.Skip(); }
 		
 	
 	public:
