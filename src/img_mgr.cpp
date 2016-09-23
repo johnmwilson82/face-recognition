@@ -8,8 +8,19 @@
 #include <time.h>
 #include <dirent.h>
 
-FaceImage::FaceImage(const std::string &path, uint32_t class_id) :
-    m_class_id(class_id)
+FaceImage::FaceImage(const MatrixXf &data_mat, uint32_t height, uint32_t width) :
+    m_data_mat(data_mat),
+    m_height(height),
+    m_width(width)
+{
+    m_data_mat.resize(height, width);
+    float max = m_data_mat.maxCoeff();
+    float min = m_data_mat.minCoeff();
+    m_data_mat += min * MatrixXf::Ones(height, width);
+    m_data_mat *= (max - min);
+}
+
+FaceImage::FaceImage(const std::string &path)
 {
     std::ifstream f(path.c_str(), std::ios_base::binary);
 
@@ -26,7 +37,7 @@ FaceImage::FaceImage(const std::string &path, uint32_t class_id) :
     }
 
     f >> m_width >> m_height >> m_maxval;
-    printf("Loading PGM %d x %d, maxval = %d\n", m_width, m_height, m_maxval);
+    //printf("Loading PGM %d x %d, maxval = %d\n", m_width, m_height, m_maxval);
 
     uint32_t bpp = (int) std::ceil(std::log2(1.0f * m_maxval) / 8.0);
     if(bpp != 1)
@@ -42,7 +53,7 @@ FaceImage::FaceImage(const std::string &path, uint32_t class_id) :
 
 void FaceImage::load_from_pixel_data(const uint8_t* buf)
 {
-    m_data_mat = MatrixXd(m_width, m_height);
+    m_data_mat = MatrixXf(m_width, m_height);
 
     for (uint32_t j = 0; j < m_height; j++) {
         for (uint32_t i = 0; i < m_width; i++) {
@@ -51,11 +62,12 @@ void FaceImage::load_from_pixel_data(const uint8_t* buf)
     }
 }
 
-MatrixXd FaceImage::to_vector() const
+MatrixXf FaceImage::to_vector() const
 {
-    MatrixXd ret(m_data_mat);
+    MatrixXf ret(m_data_mat);
     ret.resize(m_width * m_height, 1);
-    return ret;
+    MatrixXf mean = ret.mean() * MatrixXf::Ones(m_width * m_height, 1);
+    return ret - mean;
 }
 
 std::unique_ptr<uint8_t[]> FaceImage::to_rgb_buffer() const
@@ -78,24 +90,25 @@ FaceCatalogue::FaceCatalogue(const std::string &path)
     DIR *dir, *dir2;
     struct dirent *ent, *ent2;
     char buf1[1024], buf2[1024];
-    uint32_t class_id = 0, i = 0;
+    uint32_t i = 0;
 
     if ((dir = opendir(path.c_str())) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
             sprintf(buf1, "%s/%s", path.c_str(), ent->d_name);
             if ((dir2 = opendir(buf1)) != NULL) {
-                m_class_members[class_id].push_back(std::list<uint32_t>());
+                m_class_members.push_back(std::list<uint32_t>());
                 while ((ent2 = readdir(dir2)) != NULL) {
                     sprintf(buf2, "%s/%s", buf1, ent2->d_name);
                     try {
-                        FaceImage* fi = new FaceImage(buf2, class_id);
+                        FaceImage* fi = new FaceImage(buf2);
                         m_face_images.push_back(fi);
-                        m_class_members[class_id].push_back(i++);
+                        m_class_members.back().push_back(i++);
                     } catch(...) {
                         continue;
                     }
                 }
-                class_id++;
+                if (m_class_members.back().size() == 0)
+                    m_class_members.pop_back();
             }
         }
     }
@@ -105,7 +118,6 @@ FaceCatalogue::~FaceCatalogue()
 {
     for (auto fi : m_face_images)
     {
-        printf("Deleter\n") ;
         delete fi;
     }
 }
@@ -113,7 +125,9 @@ FaceCatalogue::~FaceCatalogue()
 void FaceCatalogue::choose_training_sets(float proportion, uint32_t seed)
 {
     if (seed) srand(seed); else srand(time(NULL));
-    for (auto class_list : m_class_members)
+    m_test_sets = m_class_members;
+ 
+    for (auto &class_list : m_test_sets)
     {
         std::list<uint32_t> training_list;
         int num_in_training = class_list.size() * proportion;
@@ -124,15 +138,32 @@ void FaceCatalogue::choose_training_sets(float proportion, uint32_t seed)
                 it++;
             training_list.splice(training_list.end(), class_list, it);
         }
+        m_training_sets.push_back(training_list);
     }
 }
 
 
-std::vector<FaceImage*> FaceCatalogue::get_set_of_class(uint32_t class_id)
+std::vector<FaceImage*> FaceCatalogue::get_set_of_class(uint32_t class_id, SetType type) const
 {
     std::vector<FaceImage*> ret;
-    for (auto fi : m_face_images)
-    {
-        if (fi->get_class() == class_id) ret.push_back(fi);
+    std::vector<std::list<uint32_t> > member_list;
+    switch(type) {
+        case SetType::TEST_SET:
+            member_list = m_test_sets;
+            break;
+
+        case SetType::TRAINING_SET:
+            member_list = m_training_sets;
+            break;
+    
+        case SetType::ALL_SET:
+            member_list = m_class_members;
+            break;
     }
+
+    for (auto i : member_list[class_id])
+    {
+        ret.push_back(m_face_images[i]);
+    }
+    return ret;
 }

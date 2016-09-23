@@ -9,6 +9,7 @@ endif()
 
 set(SRC
     src/img_mgr.cpp
+    src/eigenfaces.cpp
     src/main_frame.cpp
     src/main_frame_base.cpp
 )
