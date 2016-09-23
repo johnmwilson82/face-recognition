@@ -5,6 +5,7 @@
 #include "img_mgr.h"
 #include <cstdio>
 #include <cstdlib>
+#include <time.h>
 #include <dirent.h>
 
 FaceImage::FaceImage(const std::string &path, uint32_t class_id) :
@@ -39,7 +40,6 @@ FaceImage::FaceImage(const std::string &path, uint32_t class_id) :
 
 }
 
-
 void FaceImage::load_from_pixel_data(const uint8_t* buf)
 {
     m_data_mat = MatrixXd(m_width, m_height);
@@ -51,10 +51,17 @@ void FaceImage::load_from_pixel_data(const uint8_t* buf)
     }
 }
 
+MatrixXd FaceImage::to_vector() const
+{
+    MatrixXd ret(m_data_mat);
+    ret.resize(m_width * m_height, 1);
+    return ret;
+}
+
 std::unique_ptr<uint8_t[]> FaceImage::to_rgb_buffer() const
 {
     int sz = 0;
-    auto buf = std::make_unique<uint8_t[]> (m_height * m_width * 3);
+    auto buf = std::unique_ptr<uint8_t[]> (new uint8_t[m_height * m_width * 3]);
     for (uint32_t j = 0; j < m_height; j++) {
         for (uint32_t i = 0; i < m_width; i++) {
             buf[sz] = (uint8_t)(m_data_mat(i, j) * m_maxval);
@@ -65,23 +72,25 @@ std::unique_ptr<uint8_t[]> FaceImage::to_rgb_buffer() const
     }
     return buf;
 }
-    
+
 FaceCatalogue::FaceCatalogue(const std::string &path)
 {
     DIR *dir, *dir2;
     struct dirent *ent, *ent2;
     char buf1[1024], buf2[1024];
-    uint32_t class_id = 0;
+    uint32_t class_id = 0, i = 0;
 
     if ((dir = opendir(path.c_str())) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
             sprintf(buf1, "%s/%s", path.c_str(), ent->d_name);
             if ((dir2 = opendir(buf1)) != NULL) {
+                m_class_members[class_id].push_back(std::list<uint32_t>());
                 while ((ent2 = readdir(dir2)) != NULL) {
                     sprintf(buf2, "%s/%s", buf1, ent2->d_name);
                     try {
                         FaceImage* fi = new FaceImage(buf2, class_id);
                         m_face_images.push_back(fi);
+                        m_class_members[class_id].push_back(i++);
                     } catch(...) {
                         continue;
                     }
@@ -98,5 +107,32 @@ FaceCatalogue::~FaceCatalogue()
     {
         printf("Deleter\n") ;
         delete fi;
+    }
+}
+
+void FaceCatalogue::choose_training_sets(float proportion, uint32_t seed)
+{
+    if (seed) srand(seed); else srand(time(NULL));
+    for (auto class_list : m_class_members)
+    {
+        std::list<uint32_t> training_list;
+        int num_in_training = class_list.size() * proportion;
+        for (int i = 0; i < num_in_training; i++)
+        {
+            auto it = class_list.begin();
+            for (int j = 0; j < rand() % class_list.size(); j++)
+                it++;
+            training_list.splice(training_list.end(), class_list, it);
+        }
+    }
+}
+
+
+std::vector<FaceImage*> FaceCatalogue::get_set_of_class(uint32_t class_id)
+{
+    std::vector<FaceImage*> ret;
+    for (auto fi : m_face_images)
+    {
+        if (fi->get_class() == class_id) ret.push_back(fi);
     }
 }
