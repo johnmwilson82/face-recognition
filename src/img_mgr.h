@@ -25,8 +25,15 @@ public:
     uint32_t get_height() const { return m_height; }
 };
 
+class FaceObservable {
+public:
+    virtual const std::string get_name() const = 0;
+    virtual const FaceImage& get_face(uint32_t index) const = 0;
+    virtual uint32_t get_num_faces() const = 0;
+};
 
-class FaceCatalogue {
+
+class FaceCatalogue : public FaceObservable{
 private:
     std::vector<FaceImage*> m_face_images;
     std::vector<std::string> m_names_map;
@@ -39,11 +46,12 @@ public:
     enum SetType { TRAINING_SET, TEST_SET, ALL_SET };
     FaceCatalogue(const std::string &dir);
     ~FaceCatalogue();
-    const FaceImage& get_face(uint32_t index) const { return *(m_face_images[index]); }
-
-    uint32_t get_num_faces() const { return m_face_images.size(); }
 
     void choose_training_sets(float proportion, uint32_t seed = (uint32_t) NULL);
     std::vector<FaceImage*> get_set_of_class(uint32_t class_id, SetType type=SetType::ALL_SET) const;
     uint32_t get_num_classes() const { return m_class_members.size(); }
+
+    virtual const FaceImage& get_face(uint32_t index) const { return *(m_face_images[index]); }
+    virtual uint32_t get_num_faces() const { return m_face_images.size(); }
+    virtual const std::string get_name() const { return std::string("Face catalogue"); }
 };

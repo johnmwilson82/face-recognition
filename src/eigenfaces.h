@@ -6,7 +6,7 @@
 using Eigen::MatrixXf;
 using Eigen::EigenSolver;
 
-class EigenFaces
+class EigenFaces : public FaceObservable
 {
 private:
     MatrixXf m_A;
@@ -16,10 +16,12 @@ private:
     std::vector<FaceImage*> m_eigenfaces;
 
     MatrixXf construct_A_matrix();
+
 public:
     EigenFaces(const FaceCatalogue &fc);
     ~EigenFaces();
 
-    const FaceImage& get_face(uint32_t index) const { return *(m_eigenfaces[index]); }
-    uint32_t get_num_faces() const { return m_eigenfaces.size(); }
+    virtual const FaceImage& get_face(uint32_t index) const { return *(m_eigenfaces[index]); }
+    virtual uint32_t get_num_faces() const { return m_eigenfaces.size(); }
+    virtual const std::string get_name() const { return std::string("Eigenfaces"); }
 };

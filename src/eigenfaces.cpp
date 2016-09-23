@@ -10,12 +10,15 @@ EigenFaces::EigenFaces(const FaceCatalogue &fc) :
     MatrixXf L = A.transpose() * A;
     EigenSolver<MatrixXf> es(L);
     printf("Generated eigenvecs\n");
-    auto eigenvectors = es.eigenvectors().real().cast<float>();
-    for (int i = 0; i < eigenvectors.cols(); i++)
+    MatrixXf eigenvectors = es.eigenvectors().real().cast<float>();
+    for (int l = 0; l < eigenvectors.cols(); l++)
     {
-        //MatrixXf v(eigenvectors.col(i));
-        //v.resize(m_height, m_width);
-        //m_eigenfaces.push_back(new FaceImage(v, m_height, m_width));
+        MatrixXf u = MatrixXf::Zero(m_fc.get_face(0).to_vector().size(), 1);
+        for (int k = 0; k < eigenvectors.cols(); k++)
+        {
+            u += eigenvectors(k, l) * m_fc.get_face(k).to_vector();
+        }
+        m_eigenfaces.push_back(new FaceImage(u, m_height, m_width));
     }
 }
 
@@ -36,7 +39,7 @@ MatrixXf EigenFaces::construct_A_matrix()
         num_training_faces += m_fc.get_set_of_class(i, FaceCatalogue::TRAINING_SET).size();
     }
     MatrixXf A = MatrixXf(m_fc.get_face(0).get_width() * m_fc.get_face(0).get_height(), num_training_faces);
-    
+
     int icol = 0;
     for (uint32_t i = 0; i < m_fc.get_num_classes(); i++)
     {

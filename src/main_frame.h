@@ -12,29 +12,26 @@
 class MainFrame : public MainFrameBase
 {
 private:
-    const FaceCatalogue &m_face_catalogue;
-    const EigenFaces &m_eigenfaces;
+    const std::vector<FaceObservable*> &m_fos;
+    FaceObservable* m_selected_fo;
     uint32_t m_selected;
     void render_image(wxDC &dc);
 
 public:
-    MainFrame(const FaceCatalogue &fc, const EigenFaces &ef) : 
-        MainFrameBase(nullptr),
-        m_face_catalogue(fc),
-        m_eigenfaces(ef),
-        m_selected(0) {};
+    MainFrame(const std::vector<FaceObservable*> &fos);
 
 protected:
     virtual void on_paint( wxPaintEvent& event );
     virtual void on_prev( wxCommandEvent& event );
     virtual void on_next( wxCommandEvent& event );
+    virtual void on_fo_selection( wxCommandEvent& event );
 };
 
 class MyApp: public wxApp
 {
 private:
+    std::vector<FaceObservable*> m_fos;
     FaceCatalogue m_face_catalogue;
-    EigenFaces *m_eigenfaces;
 
 public:
     MyApp();

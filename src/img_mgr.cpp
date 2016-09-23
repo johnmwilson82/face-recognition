@@ -7,17 +7,18 @@
 #include <cstdlib>
 #include <time.h>
 #include <dirent.h>
+#include <iostream>
 
 FaceImage::FaceImage(const MatrixXf &data_mat, uint32_t height, uint32_t width) :
     m_data_mat(data_mat),
     m_height(height),
     m_width(width)
 {
-    m_data_mat.resize(height, width);
-    float max = m_data_mat.maxCoeff();
+    m_data_mat.resize(width, height);
     float min = m_data_mat.minCoeff();
-    m_data_mat += min * MatrixXf::Ones(height, width);
-    m_data_mat *= (max - min);
+    m_data_mat -= min * MatrixXf::Ones(width, height);
+    float max = m_data_mat.maxCoeff();
+    m_maxval = 255 / max;
 }
 
 FaceImage::FaceImage(const std::string &path)
@@ -37,7 +38,6 @@ FaceImage::FaceImage(const std::string &path)
     }
 
     f >> m_width >> m_height >> m_maxval;
-    //printf("Loading PGM %d x %d, maxval = %d\n", m_width, m_height, m_maxval);
 
     uint32_t bpp = (int) std::ceil(std::log2(1.0f * m_maxval) / 8.0);
     if(bpp != 1)
@@ -126,7 +126,8 @@ void FaceCatalogue::choose_training_sets(float proportion, uint32_t seed)
 {
     if (seed) srand(seed); else srand(time(NULL));
     m_test_sets = m_class_members;
- 
+    m_training_sets.clear();
+
     for (auto &class_list : m_test_sets)
     {
         std::list<uint32_t> training_list;
@@ -155,7 +156,7 @@ std::vector<FaceImage*> FaceCatalogue::get_set_of_class(uint32_t class_id, SetTy
         case SetType::TRAINING_SET:
             member_list = m_training_sets;
             break;
-    
+
         case SetType::ALL_SET:
             member_list = m_class_members;
             break;

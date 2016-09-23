@@ -10,8 +10,8 @@ void MainFrame::on_prev( wxCommandEvent& event )
 {
     m_selected--;
     //if (m_selected < 0) m_selected = m_face_catalogue.get_num_faces() - 1;
-    if (m_selected < 0) m_selected = m_eigenfaces.get_num_faces() - 1;
-    
+    if (m_selected < 0) m_selected = m_selected_fo->get_num_faces() - 1;
+
     wxClientDC dc(m_draw_panel);
     render_image(dc);
 }
@@ -20,8 +20,8 @@ void MainFrame::on_next( wxCommandEvent& event )
 {
     m_selected++;
     //if (m_selected >= m_face_catalogue.get_num_faces()) m_selected = 0;
-    if (m_selected >= m_eigenfaces.get_num_faces()) m_selected = 0;
-    
+    if (m_selected >= m_selected_fo->get_num_faces()) m_selected = 0;
+
     wxClientDC dc(m_draw_panel);
     render_image(dc);
 }
@@ -29,28 +29,53 @@ void MainFrame::on_next( wxCommandEvent& event )
 void MainFrame::render_image(wxDC &dc)
 {
     //const FaceImage &fi = m_face_catalogue.get_face(m_selected);
-    const FaceImage &fi = m_eigenfaces.get_face(m_selected);
+    const FaceImage &fi = m_selected_fo->get_face(m_selected);
     std::unique_ptr<uint8_t[]> buf = fi.to_rgb_buffer();
     wxImage im(wxSize(fi.get_width(), fi.get_height()), buf.release());
     wxBitmap bm(im);
     dc.DrawBitmap(bm, 0, 0, false);
 }
 
+MainFrame::MainFrame(const std::vector<FaceObservable*> &fos) :
+        MainFrameBase(nullptr),
+        m_fos(fos),
+        m_selected(0)
+{
+    for (auto fo : fos)
+    {
+        m_fo_selector->Append(fo->get_name());
+    }
+    m_fo_selector->SetSelection(m_selected);
+    m_selected_fo = m_fos[m_selected];
+}
+
+void MainFrame::on_fo_selection( wxCommandEvent& event )
+{
+    int i = m_fo_selector->GetSelection();
+    m_selected_fo = m_fos[i];
+    m_selected = 0;
+}
+
 MyApp::MyApp() :
-    m_face_catalogue("/home/john/git/face-recognition/data/orl_faces")
+    m_face_catalogue("/home/john/git/face-recognition/data/orl_faces_test")
 {
     m_face_catalogue.choose_training_sets(0.7);
-    m_eigenfaces = new EigenFaces(m_face_catalogue);
-} 
+    EigenFaces *eigenfaces = new EigenFaces(m_face_catalogue);
+    m_fos.push_back(&m_face_catalogue);
+    m_fos.push_back(eigenfaces);
+}
 
 MyApp::~MyApp()
 {
-    delete m_eigenfaces;
+    for (int i = 1; i < m_fos.size(); i++)
+    {
+        delete m_fos[i];
+    }
 }
 
 bool MyApp::OnInit()
 {
-    MainFrame* frame = new MainFrame(m_face_catalogue, *m_eigenfaces);
+    MainFrame* frame = new MainFrame(m_fos);
     frame->Show(true);
     return true;
 }
