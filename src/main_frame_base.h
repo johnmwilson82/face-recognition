@@ -17,6 +17,7 @@
 #include <wx/colour.h>
 #include <wx/settings.h>
 #include <wx/panel.h>
+#include <wx/stattext.h>
 #include <wx/button.h>
 #include <wx/sizer.h>
 #include <wx/dialog.h>
@@ -34,6 +35,7 @@ class MainFrameBase : public wxDialog
 	protected:
 		wxChoice* m_fo_selector;
 		wxPanel* m_draw_panel;
+		wxStaticText* m_txtPicInfo;
 		wxButton* m_btn_prev;
 		wxButton* m_btn_next;
 		

@@ -66,8 +66,8 @@ MatrixXf FaceImage::to_vector() const
 {
     MatrixXf ret(m_data_mat);
     ret.resize(m_width * m_height, 1);
-    MatrixXf mean = ret.mean() * MatrixXf::Ones(m_width * m_height, 1);
-    return ret - mean;
+    //MatrixXf mean = ret.mean() * MatrixXf::Ones(m_width * m_height, 1);
+    return ret;// - mean;
 }
 
 std::unique_ptr<uint8_t[]> FaceImage::to_rgb_buffer() const
@@ -103,6 +103,7 @@ FaceCatalogue::FaceCatalogue(const std::string &path)
                         FaceImage* fi = new FaceImage(buf2);
                         m_face_images.push_back(fi);
                         m_class_members.back().push_back(i++);
+                        m_class_lookup.push_back(m_class_members.size() - 1);
                     } catch(...) {
                         continue;
                     }
@@ -167,4 +168,9 @@ std::vector<FaceImage*> FaceCatalogue::get_set_of_class(uint32_t class_id, SetTy
         ret.push_back(m_face_images[i]);
     }
     return ret;
+}
+
+wxString FaceCatalogue::get_info(uint32_t index) const
+{
+    return wxString::Format("Class ID %u", m_class_lookup[index]);
 }

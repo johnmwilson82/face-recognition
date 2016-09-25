@@ -5,6 +5,7 @@
 #include <list>
 #include <memory>
 #include <cstdio>
+#include <wx/string.h>
 
 using Eigen::MatrixXf;
 
@@ -28,8 +29,9 @@ public:
 class FaceObservable {
 public:
     virtual const std::string get_name() const = 0;
-    virtual const FaceImage& get_face(uint32_t index) const = 0;
+    virtual FaceImage get_face(uint32_t index) const = 0;
     virtual uint32_t get_num_faces() const = 0;
+    virtual wxString get_info(uint32_t) const { return wxString(""); }
 };
 
 
@@ -38,6 +40,7 @@ private:
     std::vector<FaceImage*> m_face_images;
     std::vector<std::string> m_names_map;
 
+    std::vector<uint32_t> m_class_lookup;
     std::vector<std::list<uint32_t> > m_class_members;
     std::vector<std::list<uint32_t> > m_training_sets;
     std::vector<std::list<uint32_t> > m_test_sets;
@@ -51,7 +54,8 @@ public:
     std::vector<FaceImage*> get_set_of_class(uint32_t class_id, SetType type=SetType::ALL_SET) const;
     uint32_t get_num_classes() const { return m_class_members.size(); }
 
-    virtual const FaceImage& get_face(uint32_t index) const { return *(m_face_images[index]); }
+    virtual FaceImage get_face(uint32_t index) const { return *(m_face_images[index]); }
     virtual uint32_t get_num_faces() const { return m_face_images.size(); }
     virtual const std::string get_name() const { return std::string("Face catalogue"); }
+    virtual wxString get_info(uint32_t index) const;
 };

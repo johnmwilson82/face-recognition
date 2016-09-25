@@ -27,6 +27,10 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	m_draw_panel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	bSizer3->Add( m_draw_panel, 1, wxEXPAND | wxALL, 5 );
 	
+	m_txtPicInfo = new wxStaticText( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_txtPicInfo->Wrap( -1 );
+	bSizer3->Add( m_txtPicInfo, 0, wxALL, 5 );
+	
 	wxBoxSizer* bSizer4;
 	bSizer4 = new wxBoxSizer( wxHORIZONTAL );
 	
