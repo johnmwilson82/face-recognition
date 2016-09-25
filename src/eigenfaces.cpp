@@ -22,7 +22,6 @@ EigenFaces::EigenFaces(const FaceCatalogue &fc) :
         {
             u += eigenvectors(k, l) * m_fc.get_face(k).to_vector();
         }
-        //m_eigenfaces.push_back(new FaceImage(u, m_height, m_width));
         m_eigenfaces.col(l) << u;
     }
 }
@@ -71,4 +70,10 @@ void EigenFaces::get_average_face()
 FaceImage EigenFaces::get_face(uint32_t index) const
 {
     return FaceImage(m_eigenfaces.col(index), m_height, m_width);
+}
+
+MatrixXf EigenFaces::project(const FaceImage& im, uint32_t dimensionality)
+{
+    auto transform_mat = m_eigenfaces.block(0, 0, m_eigenfaces.rows(), dimensionality);
+    return transform_mat.transpose() * (im.to_vector() - m_average_face);
 }
