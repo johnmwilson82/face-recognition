@@ -62,12 +62,11 @@ void FaceImage::load_from_pixel_data(const uint8_t* buf)
     }
 }
 
-MatrixXf FaceImage::to_vector() const
+VectorXf FaceImage::to_vector() const
 {
     MatrixXf ret(m_data_mat);
     ret.resize(m_width * m_height, 1);
-    //MatrixXf mean = ret.mean() * MatrixXf::Ones(m_width * m_height, 1);
-    return ret;// - mean;
+    return VectorXf(ret);
 }
 
 std::unique_ptr<uint8_t[]> FaceImage::to_rgb_buffer() const

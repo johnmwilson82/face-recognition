@@ -24,6 +24,20 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	m_fo_selector->SetSelection( 0 );
 	bSizer3->Add( m_fo_selector, 0, wxALL|wxEXPAND, 5 );
 	
+	wxBoxSizer* bSizer41;
+	bSizer41 = new wxBoxSizer( wxHORIZONTAL );
+	
+	wxArrayString m_classifier_selectorChoices;
+	m_classifier_selector = new wxChoice( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_classifier_selectorChoices, 0 );
+	m_classifier_selector->SetSelection( 0 );
+	bSizer41->Add( m_classifier_selector, 1, wxALL|wxEXPAND, 5 );
+	
+	m_train = new wxButton( this, wxID_ANY, wxT("Train"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer41->Add( m_train, 0, wxALL, 5 );
+	
+	
+	bSizer3->Add( bSizer41, 0, wxEXPAND, 5 );
+	
 	m_draw_panel = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	bSizer3->Add( m_draw_panel, 1, wxEXPAND | wxALL, 5 );
 	
@@ -56,6 +70,8 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	this->Connect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( MainFrameBase::on_init ) );
 	this->Connect( wxEVT_PAINT, wxPaintEventHandler( MainFrameBase::on_paint ) );
 	m_fo_selector->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainFrameBase::on_fo_selection ), NULL, this );
+	m_classifier_selector->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainFrameBase::on_classifier_selector ), NULL, this );
+	m_train->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrameBase::on_train ), NULL, this );
 	m_btn_prev->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrameBase::on_prev ), NULL, this );
 	m_btn_next->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrameBase::on_next ), NULL, this );
 }
@@ -66,6 +82,8 @@ MainFrameBase::~MainFrameBase()
 	this->Disconnect( wxEVT_INIT_DIALOG, wxInitDialogEventHandler( MainFrameBase::on_init ) );
 	this->Disconnect( wxEVT_PAINT, wxPaintEventHandler( MainFrameBase::on_paint ) );
 	m_fo_selector->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainFrameBase::on_fo_selection ), NULL, this );
+	m_classifier_selector->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainFrameBase::on_classifier_selector ), NULL, this );
+	m_train->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrameBase::on_train ), NULL, this );
 	m_btn_prev->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrameBase::on_prev ), NULL, this );
 	m_btn_next->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrameBase::on_next ), NULL, this );
 	

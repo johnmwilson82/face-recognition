@@ -8,6 +8,7 @@
 #include <wx/string.h>
 
 using Eigen::MatrixXf;
+using Eigen::VectorXf;
 
 class FaceImage {
 private:
@@ -20,7 +21,7 @@ public:
     FaceImage(const std::string &path);
     FaceImage(const MatrixXf& data_mat, uint32_t height, uint32_t width);
     std::unique_ptr<uint8_t[]> to_rgb_buffer() const;
-    MatrixXf to_vector() const;
+    VectorXf to_vector() const;
 
     uint32_t get_width() const { return m_width; }
     uint32_t get_height() const { return m_height; }

@@ -16,10 +16,10 @@
 #include <wx/font.h>
 #include <wx/colour.h>
 #include <wx/settings.h>
-#include <wx/panel.h>
-#include <wx/stattext.h>
 #include <wx/button.h>
 #include <wx/sizer.h>
+#include <wx/panel.h>
+#include <wx/stattext.h>
 #include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -34,6 +34,8 @@ class MainFrameBase : public wxDialog
 	
 	protected:
 		wxChoice* m_fo_selector;
+		wxChoice* m_classifier_selector;
+		wxButton* m_train;
 		wxPanel* m_draw_panel;
 		wxStaticText* m_txtPicInfo;
 		wxButton* m_btn_prev;
@@ -43,6 +45,8 @@ class MainFrameBase : public wxDialog
 		virtual void on_init( wxInitDialogEvent& event ) { event.Skip(); }
 		virtual void on_paint( wxPaintEvent& event ) { event.Skip(); }
 		virtual void on_fo_selection( wxCommandEvent& event ) { event.Skip(); }
+		virtual void on_classifier_selector( wxCommandEvent& event ) { event.Skip(); }
+		virtual void on_train( wxCommandEvent& event ) { event.Skip(); }
 		virtual void on_prev( wxCommandEvent& event ) { event.Skip(); }
 		virtual void on_next( wxCommandEvent& event ) { event.Skip(); }
 		

@@ -24,5 +24,5 @@ public:
     virtual uint32_t get_num_faces() const { return m_eigenfaces.size(); }
     virtual const std::string get_name() const { return std::string("Eigenfaces"); }
 
-    MatrixXf project(const FaceImage& im, uint32_t dimensionality);
+    VectorXf project(const FaceImage& im, uint32_t dimensionality);
 };

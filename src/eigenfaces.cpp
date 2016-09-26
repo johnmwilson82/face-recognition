@@ -72,8 +72,10 @@ FaceImage EigenFaces::get_face(uint32_t index) const
     return FaceImage(m_eigenfaces.col(index), m_height, m_width);
 }
 
-MatrixXf EigenFaces::project(const FaceImage& im, uint32_t dimensionality)
+VectorXf EigenFaces::project(const FaceImage& im, uint32_t dimensionality)
 {
     auto transform_mat = m_eigenfaces.block(0, 0, m_eigenfaces.rows(), dimensionality);
-    return transform_mat.transpose() * (im.to_vector() - m_average_face);
+    VectorXf ret = transform_mat.transpose() * (im.to_vector() - m_average_face);
+    ret = ret - VectorXf::Ones(ret.size()) * ret.minCoeff();
+    return ret / ret.maxCoeff();
 }
