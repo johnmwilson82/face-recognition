@@ -6,6 +6,7 @@
 #include <memory>
 #include <cstdio>
 #include <wx/string.h>
+#include <map>
 
 using Eigen::MatrixXf;
 using Eigen::VectorXf;
@@ -28,11 +29,16 @@ public:
 };
 
 class FaceObservable {
+protected:
+    std::map<const FaceImage*, std::map<wxString, wxString> > m_info;
+
 public:
     virtual const std::string get_name() const = 0;
     virtual FaceImage get_face(uint32_t index) const = 0;
     virtual uint32_t get_num_faces() const = 0;
-    virtual wxString get_info(uint32_t) const { return wxString(""); }
+
+    wxString get_info(const FaceImage* im);
+    void set_info(const FaceImage* im, const wxString &category, const wxString &info);
 };
 
 
@@ -58,5 +64,4 @@ public:
     virtual FaceImage get_face(uint32_t index) const { return *(m_face_images[index]); }
     virtual uint32_t get_num_faces() const { return m_face_images.size(); }
     virtual const std::string get_name() const { return std::string("Face catalogue"); }
-    virtual wxString get_info(uint32_t index) const;
 };

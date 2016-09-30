@@ -90,11 +90,9 @@ void MLP::train(const VectorXf &input, uint32_t exp_class)
     {
         minus_delta_e.push_back(std::vector<float>(layer->size()));
 
-        //printf("Layer %d/%u...\noutput...\n", ++l, m_neurons.size());
         for (int j = 0; j < layer->size(); j++)
         {
             float v = (*layer)[j].get_output();
-            //printf("%f ", v); 
             if (layer == m_neurons.rbegin())
             {
                 minus_delta_e.back()[j] =
@@ -120,13 +118,6 @@ void MLP::train(const VectorXf &input, uint32_t exp_class)
                 e->set_weight(e->get_weight() + delta_weight);
             }
         }
-        /*printf("\nminus_delta_e...\n", ++l, m_neurons.size());
-        for (auto g : minus_delta_e.back())
-        {
-            printf("%f ", g); 
-        }
-        printf("\n");*/
-
     }
 }
 

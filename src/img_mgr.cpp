@@ -8,6 +8,7 @@
 #include <time.h>
 #include <dirent.h>
 #include <iostream>
+#include <utility>
 
 FaceImage::FaceImage(const MatrixXf &data_mat, uint32_t height, uint32_t width) :
     m_data_mat(data_mat),
@@ -84,6 +85,23 @@ std::unique_ptr<uint8_t[]> FaceImage::to_rgb_buffer() const
     return buf;
 }
 
+wxString FaceObservable::get_info(const FaceImage* im)
+{
+    wxString ret;
+    for(const auto &infopair : m_info[im])
+    {
+        ret += infopair.first + ": " + infopair.second + "\n";
+    }
+    return ret;
+}
+
+void FaceObservable::set_info(const FaceImage* im, const wxString &category, const wxString &info)
+{
+    if(m_info.find(im) == m_info.end())
+        m_info[im] = std::map<wxString, wxString>();
+    m_info[im][category] = info;
+}
+
 FaceCatalogue::FaceCatalogue(const std::string &path)
 {
     DIR *dir, *dir2;
@@ -102,7 +120,7 @@ FaceCatalogue::FaceCatalogue(const std::string &path)
                         FaceImage* fi = new FaceImage(buf2);
                         m_face_images.push_back(fi);
                         m_class_members.back().push_back(i++);
-                        m_class_lookup.push_back(m_class_members.size() - 1);
+                        set_info(fi, "Class", "666" /*wxString::Format("%u", m_class_members.size() - 1)*/); 
                     } catch(...) {
                         continue;
                     }
@@ -167,9 +185,4 @@ std::vector<FaceImage*> FaceCatalogue::get_set_of_class(uint32_t class_id, SetTy
         ret.push_back(m_face_images[i]);
     }
     return ret;
-}
-
-wxString FaceCatalogue::get_info(uint32_t index) const
-{
-    return wxString::Format("Class ID %u", m_class_lookup[index]);
 }

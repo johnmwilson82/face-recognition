@@ -31,7 +31,7 @@ void MainFrame::render_image(wxDC &dc)
     wxImage im(wxSize(fi.get_width(), fi.get_height()), buf.get(), true);
     wxBitmap bm(im);
     dc.DrawBitmap(bm, 0, 0, false);
-    m_txtPicInfo->SetLabelText(m_selected_fo->get_info(m_selected));
+    m_txtPicInfo->SetLabelText(m_selected_fo->get_info(&fi));
 }
 
 MainFrame::MainFrame(AppIF *app) :
