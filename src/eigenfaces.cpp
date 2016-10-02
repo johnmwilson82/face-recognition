@@ -1,8 +1,9 @@
 #include "eigenfaces.h"
 #include <iostream>
+#include <algorithm>
 
 EigenFaces::EigenFaces(const FaceCatalogue &fc) :
-        m_fc(fc),
+        Projector(fc),
         m_width(fc.get_face(0).get_width()),
         m_height(fc.get_face(0).get_height())
 {
@@ -12,9 +13,13 @@ EigenFaces::EigenFaces(const FaceCatalogue &fc) :
 
     MatrixXf L = A.transpose() * A;
     EigenSolver<MatrixXf> es(L);
-    printf("Generated eigenvecs\n");
 
     MatrixXf eigenvectors = es.eigenvectors().real().cast<float>();
+    VectorXf eigenvalues = es.eigenvalues().real().cast<float>();
+
+    sort_eigenvectors(eigenvectors, eigenvalues);
+    printf("Generated eigenvecs\n");
+
     for (int l = 0; l < eigenvectors.cols(); l++)
     {
         MatrixXf u = MatrixXf::Zero(m_fc.get_face(0).to_vector().size(), 1);
@@ -23,11 +28,33 @@ EigenFaces::EigenFaces(const FaceCatalogue &fc) :
             u += eigenvectors(k, l) * m_fc.get_face(k).to_vector();
         }
         m_eigenfaces.col(l) << u;
+        set_info(l, "Index", wxString::Format("%u", l));
+        set_info(l, "Eigenvalue", wxString::Format("%f", eigenvalues(l)));
     }
+    printf("Generated eigenfaces\n");
 }
 
 EigenFaces::~EigenFaces()
 {
+}
+
+void EigenFaces::sort_eigenvectors(MatrixXf& eigenvectors, VectorXf& eigenvalues)
+{
+    std::vector<uint32_t> idx(eigenvalues.size());
+    std::iota(idx.begin(), idx.end(), 0);
+
+    sort(idx.begin(), idx.end(), [&eigenvalues](uint32_t i1, uint32_t i2) {
+            return eigenvalues[i1] > eigenvalues[i2]; });
+
+    MatrixXf evec_copy(eigenvectors);
+    VectorXf eval_copy(eigenvalues);
+    int j = 0;
+    for (auto i : idx)
+    {
+        eigenvalues[j] = eval_copy[i];
+        eigenvectors.col(i) = evec_copy.col(j);
+        j++;
+    }
 }
 
 MatrixXf EigenFaces::construct_A_matrix()
@@ -69,7 +96,7 @@ void EigenFaces::get_average_face()
 
 FaceImage EigenFaces::get_face(uint32_t index) const
 {
-    return FaceImage(m_eigenfaces.col(index), m_height, m_width);
+    return FaceImage(m_eigenfaces.col(index), m_height, m_width, index);
 }
 
 VectorXf EigenFaces::project(const FaceImage& im, uint32_t dimensionality)

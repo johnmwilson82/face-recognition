@@ -10,10 +10,11 @@
 #include <iostream>
 #include <utility>
 
-FaceImage::FaceImage(const MatrixXf &data_mat, uint32_t height, uint32_t width) :
+FaceImage::FaceImage(const MatrixXf &data_mat, uint32_t height, uint32_t width, uint32_t index) :
     m_data_mat(data_mat),
     m_height(height),
-    m_width(width)
+    m_width(width),
+    m_index(index)
 {
     m_data_mat.resize(width, height);
     float min = m_data_mat.minCoeff();
@@ -22,7 +23,8 @@ FaceImage::FaceImage(const MatrixXf &data_mat, uint32_t height, uint32_t width) 
     m_maxval = 255 / max;
 }
 
-FaceImage::FaceImage(const std::string &path)
+FaceImage::FaceImage(const std::string &path, uint32_t index) :
+    m_index(index)
 {
     std::ifstream f(path.c_str(), std::ios_base::binary);
 
@@ -85,21 +87,36 @@ std::unique_ptr<uint8_t[]> FaceImage::to_rgb_buffer() const
     return buf;
 }
 
-wxString FaceObservable::get_info(const FaceImage* im)
+std::vector< wxVector<wxVariant> > FaceObservable::get_info(uint32_t index)
 {
-    wxString ret;
-    for(const auto &infopair : m_info[im])
+    std::vector< wxVector<wxVariant> > ret;
+
+    if (m_info.find(index) == m_info.end())
+        return ret;
+
+    for(const auto &infopair : m_info.at(index))
     {
-        ret += infopair.first + ": " + infopair.second + "\n";
+        wxVector<wxVariant> pair;
+        pair.push_back(wxVariant(infopair.first));
+        pair.push_back(infopair.second);
+        ret.push_back(pair);
     }
     return ret;
 }
 
-void FaceObservable::set_info(const FaceImage* im, const wxString &category, const wxString &info)
+const wxVariant& FaceObservable::get_info(uint32_t index, const wxString &category) const
 {
-    if(m_info.find(im) == m_info.end())
-        m_info[im] = std::map<wxString, wxString>();
-    m_info[im][category] = info;
+    return m_info.at(index).at(category);
+}
+
+
+void FaceObservable::set_info(uint32_t index, const wxString &category, const wxVariant &info)
+{
+    if(m_info.find(index) == m_info.end())
+    {
+        m_info[index] = std::map<wxString, wxVariant>();
+    }
+    m_info[index][category] = info;
 }
 
 FaceCatalogue::FaceCatalogue(const std::string &path)
@@ -117,10 +134,11 @@ FaceCatalogue::FaceCatalogue(const std::string &path)
                 while ((ent2 = readdir(dir2)) != NULL) {
                     sprintf(buf2, "%s/%s", buf1, ent2->d_name);
                     try {
-                        FaceImage* fi = new FaceImage(buf2);
+                        FaceImage* fi = new FaceImage(buf2, i);
                         m_face_images.push_back(fi);
+                        set_info(i, "Class", wxString::Format("%lu", m_class_members.size() - 1));
+                        set_info(i, "Index", wxString::Format("%d", i));
                         m_class_members.back().push_back(i++);
-                        set_info(fi, "Class", "666" /*wxString::Format("%u", m_class_members.size() - 1)*/); 
                     } catch(...) {
                         continue;
                     }
@@ -140,11 +158,11 @@ FaceCatalogue::~FaceCatalogue()
     }
 }
 
-void FaceCatalogue::choose_training_sets(float proportion, uint32_t seed)
+void FaceCatalogue::autoselect_training_sets(float proportion, uint32_t seed)
 {
     if (seed) srand(seed); else srand(time(NULL));
     m_test_sets = m_class_members;
-    m_training_sets.clear();
+    clear_training_sets();
 
     for (auto &class_list : m_test_sets)
     {
@@ -155,12 +173,24 @@ void FaceCatalogue::choose_training_sets(float proportion, uint32_t seed)
             auto it = class_list.begin();
             for (int j = 0; j < rand() % class_list.size(); j++)
                 it++;
+            set_info(*it, "Train set", "Yes");
             training_list.splice(training_list.end(), class_list, it);
         }
         m_training_sets.push_back(training_list);
     }
 }
 
+void FaceCatalogue::clear_training_sets()
+{
+    m_training_sets.clear();
+    for (auto &class_list : m_class_members)
+    {
+        for (auto &i : class_list)
+        {
+            set_info(i, "Train set", "No");
+        }
+    }
+}
 
 std::vector<FaceImage*> FaceCatalogue::get_set_of_class(uint32_t class_id, SetType type) const
 {

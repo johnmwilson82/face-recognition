@@ -17,7 +17,7 @@ set(SRC
 
 add_executable(frgui ${SRC})
 
-find_package(wxWidgets REQUIRED net gl core base)
+find_package(wxWidgets REQUIRED net gl core base adv)
 include(${wxWidgets_USE_FILE})
 
 target_link_libraries(frgui
