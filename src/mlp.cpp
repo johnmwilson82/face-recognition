@@ -39,15 +39,18 @@ float Neuron::get_output()
     return activation_function(sum + m_bias);
 }
 
-MLP::MLP(std::vector<uint32_t> layers) :
-    m_learning_rate(0.01)
+MLP::MLP(uint32_t input_size, uint32_t output_size, const wxPropertyGridInterface& props)
 {
-    m_inputs = std::vector<InputNeuron>(layers[0]);
+    int nhidden_nodes = props.GetPropertyByName(wxT("propHiddenNodes"))->GetValue().GetLong();
+    m_learning_rate = props.GetPropertyByName(wxT("propLearningRate"))->GetValue().GetDouble();
+    m_inputs = std::vector<InputNeuron>(input_size);
 
-    for (int i = 1; i < layers.size(); i++)
-    {
-        m_neurons.push_back(std::vector<Neuron>(layers[i]));
-    }
+    m_neurons.push_back(std::vector<Neuron>(nhidden_nodes));
+    m_neurons.push_back(std::vector<Neuron>(output_size));
+
+    printf("inputs length = %d\n", input_size);
+    printf("hidden length = %d\n", nhidden_nodes);
+    printf("outputs length = %d\n", output_size);
 
     generate_links();
 }
@@ -139,7 +142,7 @@ VectorXf MLP::get_output(const VectorXf &input)
     if (input.size() != m_inputs.size())
         throw std::runtime_error("Wrong size input for MLP");
 
-    for (int j = 0; j < input.size(); j++) printf("%.2f, ", input[j]); printf("\n");
+    //for (int j = 0; j < input.size(); j++) printf("%.2f, ", input[j]); printf("\n");
     int i = 0;
     for (auto &n : m_inputs)
     {
@@ -150,7 +153,7 @@ VectorXf MLP::get_output(const VectorXf &input)
     for (auto &n : m_neurons.back())
     {
         float o = n.get_output();
-        printf("neuron output = %f\n", o);
+        //printf("neuron output = %f\n", o);
         ret(i++) = o;
     }
 
@@ -182,6 +185,19 @@ uint32_t MLP::classify(const VectorXf &input)
             ret = i;
         }
     }
-    printf("max_output = %f\n", max_output);
     return ret;
 }
+
+std::vector<std::shared_ptr<wxPGProperty> > MLP::get_props()
+{
+    auto prop1 = std::make_shared<wxIntProperty>(wxT("Number of iterations"), wxT("propIterations"));
+    prop1->SetValue(500);
+    auto prop2 = std::make_shared<wxIntProperty>(wxT("Number of hidden nodes"), wxT("propHiddenNodes"));
+    prop2->SetValue(15);
+    auto prop3 = std::make_shared<wxFloatProperty>(wxT("Learning rate"), wxT("propLearningRate"));
+    prop3->SetValue(0.01);
+
+    return {prop1, prop2, prop3};
+}
+
+REGISTER_CLASSIFIER(MLP)

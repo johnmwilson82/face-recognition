@@ -8,6 +8,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 set(SRC
+    src/classifier.cpp
     src/img_mgr.cpp
     src/eigenfaces.cpp
     src/mlp.cpp
@@ -17,7 +18,7 @@ set(SRC
 
 add_executable(frgui ${SRC})
 
-find_package(wxWidgets REQUIRED net gl core base adv)
+find_package(wxWidgets REQUIRED net gl core base adv propgrid)
 include(${wxWidgets_USE_FILE})
 
 target_link_libraries(frgui

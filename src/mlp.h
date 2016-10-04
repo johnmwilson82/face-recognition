@@ -67,11 +67,14 @@ private:
     VectorXf get_output(const VectorXf &input);
 
 public:
-    MLP(std::vector<uint32_t> layers);
+    MLP(uint32_t input_size, uint32_t output_size, const wxPropertyGridInterface& props);
 
     float sq_error(const VectorXf &d, const VectorXf &y);
 
     virtual uint32_t classify(const VectorXf &input);
-    virtual const std::string get_name() const { return std::string("MLP"); }
     virtual void train(const VectorXf &input, uint32_t exp_class);
+
+    static const wxString get_name() { return "MLP"; }
+
+    static std::vector<std::shared_ptr<wxPGProperty>> get_props();
 };

@@ -26,6 +26,8 @@
 #include <wx/image.h>
 #include <wx/icon.h>
 #include <wx/choice.h>
+#include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/advprops.h>
 #include <wx/notebook.h>
 #include <wx/dialog.h>
 
@@ -57,7 +59,8 @@ class MainFrameBase : public wxDialog
 		wxTextCtrl* m_txt_projection_dimensions;
 		wxButton* m_btn_projection_generate;
 		wxPanel* m_mlp_panel;
-		wxChoice* m_classifier_selector;
+		wxChoice* m_classifier_choice;
+		wxPropertyGrid* m_classifier_propgrid;
 		wxButton* m_train;
 		
 		// Virtual event handlers, overide them in your derived class
@@ -69,8 +72,9 @@ class MainFrameBase : public wxDialog
 		virtual void on_source_checked( wxTreeListEvent& event ) { event.Skip(); }
 		virtual void on_source_select( wxTreeListEvent& event ) { event.Skip(); }
 		virtual void on_autoselect_training( wxCommandEvent& event ) { event.Skip(); }
+		virtual void on_dimensions_enter( wxCommandEvent& event ) { event.Skip(); }
 		virtual void on_projection_generate( wxCommandEvent& event ) { event.Skip(); }
-		virtual void on_classifier_selector( wxCommandEvent& event ) { event.Skip(); }
+		virtual void on_classifier_choice( wxCommandEvent& event ) { event.Skip(); }
 		virtual void on_train( wxCommandEvent& event ) { event.Skip(); }
 		
 	

@@ -75,7 +75,7 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	m_source_panel->SetSizer( bSizer11 );
 	m_source_panel->Layout();
 	bSizer11->Fit( m_source_panel );
-	m_notebook1->AddPage( m_source_panel, wxT("Source"), true );
+	m_notebook1->AddPage( m_source_panel, wxT("Source"), false );
 	m_projection_panel = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer9;
 	bSizer9 = new wxBoxSizer( wxVERTICAL );
@@ -87,7 +87,7 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	m_staticText2->Wrap( -1 );
 	bSizer101->Add( m_staticText2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 	
-	m_txt_projection_dimensions = new wxTextCtrl( m_projection_panel, wxID_ANY, wxT("10"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_txt_projection_dimensions = new wxTextCtrl( m_projection_panel, wxID_ANY, wxT("10"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER );
 	bSizer101->Add( m_txt_projection_dimensions, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 	
 	m_btn_projection_generate = new wxButton( m_projection_panel, wxID_ANY, wxT("Generate"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -105,13 +105,16 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	wxBoxSizer* bSizer12;
 	bSizer12 = new wxBoxSizer( wxVERTICAL );
 	
+	wxArrayString m_classifier_choiceChoices;
+	m_classifier_choice = new wxChoice( m_mlp_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_classifier_choiceChoices, 0 );
+	m_classifier_choice->SetSelection( 0 );
+	bSizer12->Add( m_classifier_choice, 0, wxALL|wxEXPAND, 5 );
+	
+	m_classifier_propgrid = new wxPropertyGrid(m_mlp_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxPG_DEFAULT_STYLE);
+	bSizer12->Add( m_classifier_propgrid, 1, wxALL|wxEXPAND, 5 );
+	
 	wxBoxSizer* bSizer41;
 	bSizer41 = new wxBoxSizer( wxHORIZONTAL );
-	
-	wxArrayString m_classifier_selectorChoices;
-	m_classifier_selector = new wxChoice( m_mlp_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_classifier_selectorChoices, 0 );
-	m_classifier_selector->SetSelection( 0 );
-	bSizer41->Add( m_classifier_selector, 1, wxALL|wxEXPAND, 5 );
 	
 	m_train = new wxButton( m_mlp_panel, wxID_ANY, wxT("Train"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer41->Add( m_train, 0, wxALL, 5 );
@@ -123,7 +126,7 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	m_mlp_panel->SetSizer( bSizer12 );
 	m_mlp_panel->Layout();
 	bSizer12->Fit( m_mlp_panel );
-	m_notebook1->AddPage( m_mlp_panel, wxT("MLP"), false );
+	m_notebook1->AddPage( m_mlp_panel, wxT("MLP"), true );
 	
 	bSizer10->Add( m_notebook1, 1, wxEXPAND | wxALL, 5 );
 	
@@ -145,8 +148,9 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	m_source_selector->Connect( wxEVT_TREELIST_ITEM_CHECKED, wxTreeListEventHandler( MainFrameBase::on_source_checked ), NULL, this );
 	m_source_selector->Connect( wxEVT_TREELIST_SELECTION_CHANGED, wxTreeListEventHandler( MainFrameBase::on_source_select ), NULL, this );
 	m_autoselect_training->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrameBase::on_autoselect_training ), NULL, this );
+	m_txt_projection_dimensions->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::on_dimensions_enter ), NULL, this );
 	m_btn_projection_generate->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrameBase::on_projection_generate ), NULL, this );
-	m_classifier_selector->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainFrameBase::on_classifier_selector ), NULL, this );
+	m_classifier_choice->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainFrameBase::on_classifier_choice ), NULL, this );
 	m_train->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrameBase::on_train ), NULL, this );
 }
 
@@ -161,8 +165,9 @@ MainFrameBase::~MainFrameBase()
 	m_source_selector->Disconnect( wxEVT_TREELIST_ITEM_CHECKED, wxTreeListEventHandler( MainFrameBase::on_source_checked ), NULL, this );
 	m_source_selector->Disconnect( wxEVT_TREELIST_SELECTION_CHANGED, wxTreeListEventHandler( MainFrameBase::on_source_select ), NULL, this );
 	m_autoselect_training->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrameBase::on_autoselect_training ), NULL, this );
+	m_txt_projection_dimensions->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::on_dimensions_enter ), NULL, this );
 	m_btn_projection_generate->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrameBase::on_projection_generate ), NULL, this );
-	m_classifier_selector->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainFrameBase::on_classifier_selector ), NULL, this );
+	m_classifier_choice->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainFrameBase::on_classifier_choice ), NULL, this );
 	m_train->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrameBase::on_train ), NULL, this );
 	
 }
