@@ -2,8 +2,8 @@
 #include <iostream>
 #include <algorithm>
 
-EigenFaces::EigenFaces(const FaceCatalogue &fc) :
-        Projector(fc),
+EigenFaces::EigenFaces(const FaceCatalogue &fc, const wxPropertyGridInterface& props) :
+        Projector(fc, props),
         m_width(fc.get_face(0).get_width()),
         m_height(fc.get_face(0).get_height())
 {
@@ -106,3 +106,10 @@ VectorXf EigenFaces::project(const FaceImage& im, uint32_t dimensionality)
     ret = ret - VectorXf::Ones(ret.size()) * ret.minCoeff();
     return ret / ret.maxCoeff();
 }
+
+std::vector<std::shared_ptr<wxPGProperty> > EigenFaces::get_props()
+{
+    return Projector::get_props();
+}
+
+REGISTER_PROJECTOR(EigenFaces)

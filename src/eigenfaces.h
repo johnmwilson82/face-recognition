@@ -18,12 +18,14 @@ private:
     void get_average_face();
 
 public:
-    EigenFaces(const FaceCatalogue &fc);
+    EigenFaces(const FaceCatalogue &fc, const wxPropertyGridInterface& props);
     ~EigenFaces();
 
     virtual FaceImage get_face(uint32_t index) const;
     virtual uint32_t get_num_faces() const { return m_eigenfaces.cols(); }
-    virtual const std::string get_name() const { return std::string("Eigenfaces"); }
 
     virtual VectorXf project(const FaceImage& im, uint32_t dimensionality);
+
+    static const wxString get_name() { return "Eigenfaces"; }
+    static std::vector<std::shared_ptr<wxPGProperty> > get_props();
 };

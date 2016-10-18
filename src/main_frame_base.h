@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Sep  9 2016)
+// C++ code generated with wxFormBuilder (version Oct 17 2016)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -55,9 +55,9 @@ class MainFrameBase : public wxDialog
 		wxStaticText* m_staticText1;
 		wxTextCtrl* m_txt_training_prop;
 		wxPanel* m_projection_panel;
-		wxStaticText* m_staticText2;
-		wxTextCtrl* m_txt_projection_dimensions;
-		wxButton* m_btn_projection_generate;
+		wxChoice* m_projector_choice;
+		wxPropertyGrid* m_projector_propgrid;
+		wxButton* m_projection_generate;
 		wxPanel* m_mlp_panel;
 		wxChoice* m_classifier_choice;
 		wxPropertyGrid* m_classifier_propgrid;
@@ -72,7 +72,8 @@ class MainFrameBase : public wxDialog
 		virtual void on_source_checked( wxTreeListEvent& event ) { event.Skip(); }
 		virtual void on_source_select( wxTreeListEvent& event ) { event.Skip(); }
 		virtual void on_autoselect_training( wxCommandEvent& event ) { event.Skip(); }
-		virtual void on_dimensions_enter( wxCommandEvent& event ) { event.Skip(); }
+		virtual void on_projector_choice( wxCommandEvent& event ) { event.Skip(); }
+		virtual void on_projection_propgrid( wxPropertyGridEvent& event ) { event.Skip(); }
 		virtual void on_projection_generate( wxCommandEvent& event ) { event.Skip(); }
 		virtual void on_classifier_choice( wxCommandEvent& event ) { event.Skip(); }
 		virtual void on_train( wxCommandEvent& event ) { event.Skip(); }

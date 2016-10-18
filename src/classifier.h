@@ -1,6 +1,4 @@
 #pragma once
-
-#pragma once
 #include <wx/wxprec.h>
 
 #ifndef WX_PRECOMP
@@ -49,7 +47,6 @@ public:
                                const wxPropertyGridInterface& props) const = 0;
     virtual wxString get_name() const = 0;
     virtual std::vector<std::shared_ptr<wxPGProperty>> get_props() const = 0;
-    //virtual const wxPGAttributeStorage& get_props() = 0;
 };
 
 class Classifier
@@ -69,7 +66,4 @@ public:
     {
         return _factories;
     }
-
-    //static const wxString get_name() { return wxString("Undefined"); }
-    //virtual wxPGAttributeStorage get_props();
 };

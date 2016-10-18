@@ -36,7 +36,7 @@ protected:
     std::map<uint32_t, std::map<wxString, wxVariant> > m_info;
 
 public:
-    virtual const std::string get_name() const = 0;
+    //virtual const std::string get_name() const = 0;
     virtual FaceImage get_face(uint32_t index) const = 0;
     virtual uint32_t get_num_faces() const = 0;
 
@@ -68,5 +68,5 @@ public:
 
     virtual FaceImage get_face(uint32_t index) const { return *(m_face_images[index]); }
     virtual uint32_t get_num_faces() const { return m_face_images.size(); }
-    virtual const std::string get_name() const { return std::string("Face catalogue"); }
+    //virtual const std::string get_name() const { return std::string("Face catalogue"); }
 };

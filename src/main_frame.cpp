@@ -144,8 +144,7 @@ void MainFrame::on_autoselect_training( wxCommandEvent& event )
 
 void MainFrame::on_projection_generate( wxCommandEvent& event )
 {
-    m_app->set_projector<EigenFaces>();
-    set_projector_dimensions();
+    m_app->set_projector(*m_projector_propgrid);
     m_selected_fo = dynamic_cast<FaceObservable*> (m_app->get_current_projector());
     m_selected = 0;
     wxClientDC dc(m_draw_panel);
@@ -172,22 +171,14 @@ void MainFrame::on_notebook_page( wxNotebookEvent& event )
     }
 }
 
-void MainFrame::on_dimensions_enter( wxCommandEvent& event )
-{
-    set_projector_dimensions();
-}
-
-void MainFrame::set_projector_dimensions()
-{
-    if(!m_app->get_current_projector()) return;
-    unsigned long ndims;
-    m_txt_projection_dimensions->GetValue().ToULong(&ndims);
-    m_app->get_current_projector()->set_noutput_dims((uint32_t) ndims);
-}
-
 void MainFrame::append_classifier(ClassifierFactory* factory)
 {
     m_classifier_choice->Append(factory->get_name(), (wxClientData*) factory);
+}
+
+void MainFrame::append_projector(ProjectorFactory* factory)
+{
+    m_projector_choice->Append(factory->get_name(), (wxClientData*) factory);
 }
 
 void MainFrame::on_classifier_choice( wxCommandEvent& event )
@@ -208,28 +199,72 @@ void MainFrame::set_classifier_props()
         m_classifier_props.push_back(p);
         m_classifier_propgrid->Append(p.get());
     }
+
+    m_app->set_classifier_factory(factory);
 }
+
+void MainFrame::on_projector_choice( wxCommandEvent& event )
+{
+    set_projector_props();
+}
+
+void MainFrame::on_projection_propgrid( wxPropertyGridEvent& event )
+{
+    auto current_projector = m_app->get_current_projector();
+    if (current_projector)
+    {
+        current_projector->update_props(*m_projector_propgrid);
+    }
+}
+
+void MainFrame::set_projector_props()
+{
+    ProjectorFactory* factory = reinterpret_cast<ProjectorFactory*>(
+        m_projector_choice->GetClientObject(
+            m_projector_choice->GetSelection()));
+
+    auto props = factory->get_props();
+    m_projector_props.clear();
+    for (auto p: props)
+    {
+        m_projector_props.push_back(p);
+        m_projector_propgrid->Append(p.get());
+    }
+
+    m_app->set_projector_factory(factory);
+}
+
 
 void MainFrame::user_init()
 {
     m_classifier_choice->SetSelection(0);
     set_classifier_props();
+    m_projector_choice->SetSelection(0);
+    set_projector_props();
 }
 
 MyApp::MyApp() :
     m_face_catalogue("/home/john/git/face-recognition/data/orl_faces_test")
 {
     m_face_catalogue.autoselect_training_sets(0.7);
-
 }
 
 MyApp::~MyApp()
 {
 }
 
-template<typename T> void MyApp::set_projector()
+void MyApp::set_projector(const wxPropertyGridInterface& props)
 {
-    m_projector = std::shared_ptr<Projector>(new EigenFaces(m_face_catalogue));
+    m_projector = std::shared_ptr<Projector>(m_projector_factory->create(m_face_catalogue, props));
+}
+
+void MyApp::set_projector_factory(ProjectorFactory* factory)
+{
+    if (factory != m_projector_factory)
+    {
+        m_projector.reset();
+        m_projector_factory = factory;
+    }
 }
 
 bool MyApp::OnInit()
@@ -238,6 +273,10 @@ bool MyApp::OnInit()
     for (auto c : Classifier::get_all_classifiers())
     {
         frame->append_classifier(c.second);
+    }
+    for (auto p : Projector::get_all_projectors())
+    {
+        frame->append_projector(p.second);
     }
     frame->Show(true);
     frame->user_init();
@@ -286,6 +325,7 @@ void MyApp::train(const wxPropertyGridInterface& props)
         for (auto im : m_face_catalogue.get_set_of_class(c, FaceCatalogue::TEST_SET))
         {
             uint32_t detected = mlp.classify(m_projector->project(*im));
+
             printf("Detected %u\n", detected);
         }
     }

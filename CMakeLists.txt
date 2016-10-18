@@ -9,6 +9,7 @@ endif()
 
 set(SRC
     src/classifier.cpp
+    src/projector.cpp
     src/img_mgr.cpp
     src/eigenfaces.cpp
     src/mlp.cpp
