@@ -300,7 +300,9 @@ bool MyApp::OnExceptionInMainLoop()
 
 void MyApp::train(const wxPropertyGridInterface& props)
 {
-    MLP mlp(get_current_projector()->get_noutput_dims(),
+    Classifier* classifier =
+        m_classifier_factory->create(
+            get_current_projector()->get_noutput_dims(),
             m_face_catalogue.get_num_classes(),
             props);
 
@@ -312,7 +314,7 @@ void MyApp::train(const wxPropertyGridInterface& props)
         {
             for (auto im : m_face_catalogue.get_set_of_class(c, FaceCatalogue::TRAINING_SET))
             {
-                mlp.train(m_projector->project(*im), c);
+                classifier->train(m_projector->project(*im), c);
             }
         }
     }
@@ -324,7 +326,7 @@ void MyApp::train(const wxPropertyGridInterface& props)
         printf("Class %u...\n", c);
         for (auto im : m_face_catalogue.get_set_of_class(c, FaceCatalogue::TEST_SET))
         {
-            uint32_t detected = mlp.classify(m_projector->project(*im));
+            uint32_t detected = classifier->classify(m_projector->project(*im));
 
             printf("Detected %u\n", detected);
         }

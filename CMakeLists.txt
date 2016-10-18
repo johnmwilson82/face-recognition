@@ -13,6 +13,7 @@ set(SRC
     src/img_mgr.cpp
     src/eigenfaces.cpp
     src/mlp.cpp
+    src/report.cpp
     src/main_frame.cpp
     src/main_frame_base.cpp
 )
