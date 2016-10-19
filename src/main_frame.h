@@ -11,6 +11,7 @@
 #include "mlp.h"
 #include <memory>
 #include <list>
+#include "result.h"
 
 class MyApp;
 
@@ -53,6 +54,8 @@ protected:
 
 };
 
+
+
 class MyApp: public wxApp
 {
 private:
@@ -71,7 +74,7 @@ public:
     virtual bool OnInit();
     virtual bool OnExceptionInMainLoop();
 
-    void train(const wxPropertyGridInterface& props);
+    std::vector<Result> test(const wxPropertyGridInterface& props);
     FaceCatalogue& get_face_catalogue() { return m_face_catalogue; }
     void set_projector(const wxPropertyGridInterface& props);
     Projector* get_current_projector() { return m_projector ? m_projector.get() : nullptr; }

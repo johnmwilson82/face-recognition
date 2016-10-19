@@ -1,4 +1,6 @@
 #include "main_frame.h"
+#include <wx/filedlg.h>
+#include "report.h"
 
 void MainFrame::on_paint( wxPaintEvent& event )
 {
@@ -127,7 +129,21 @@ void MainFrame::on_source_checked( wxTreeListEvent& event )
 
 void MainFrame::on_train( wxCommandEvent& event )
 {
-    m_app->train(*m_classifier_propgrid);
+    auto results = m_app->test(*m_classifier_propgrid);
+    Report r;
+    r.add_props(m_projector_choice->GetString(m_projector_choice->GetSelection()),
+                *m_projector_propgrid);
+    r.add_props(m_classifier_choice->GetString(m_classifier_choice->GetSelection()),
+                *m_classifier_propgrid);
+    r.add_results(results);
+
+    wxFileDialog save_fd(this, _("Save results file"), "", "",
+                       "Result files (*.res)|*.res", wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+
+
+    if (save_fd.ShowModal() == wxID_CANCEL) return;
+
+    r.save(save_fd.GetPath());
 }
 
 void MainFrame::on_autoselect_training( wxCommandEvent& event )
@@ -244,7 +260,7 @@ void MainFrame::user_init()
 }
 
 MyApp::MyApp() :
-    m_face_catalogue("/home/john/git/face-recognition/data/orl_faces_test")
+    m_face_catalogue("/home/john/git/face-recognition/data/orl_faces")
 {
     m_face_catalogue.autoselect_training_sets(0.7);
 }
@@ -298,7 +314,7 @@ bool MyApp::OnExceptionInMainLoop()
     return false;
 }
 
-void MyApp::train(const wxPropertyGridInterface& props)
+std::vector<Result> MyApp::test(const wxPropertyGridInterface& props)
 {
     Classifier* classifier =
         m_classifier_factory->create(
@@ -321,16 +337,20 @@ void MyApp::train(const wxPropertyGridInterface& props)
     printf("Trained\n");
 
     printf("Testing...\n");
+    std::vector<Result> ret;
+
     for (uint32_t c = 0; c < m_face_catalogue.get_num_classes(); c++)
     {
         printf("Class %u...\n", c);
+        ret.emplace_back(c);
         for (auto im : m_face_catalogue.get_set_of_class(c, FaceCatalogue::TEST_SET))
         {
             uint32_t detected = classifier->classify(m_projector->project(*im));
-
             printf("Detected %u\n", detected);
+            ret.back().add_detection(detected);
         }
     }
+    return ret;
 }
 
 wxIMPLEMENT_APP(MyApp);

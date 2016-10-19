@@ -14,6 +14,7 @@ set(SRC
     src/eigenfaces.cpp
     src/mlp.cpp
     src/report.cpp
+    src/result.cpp
     src/main_frame.cpp
     src/main_frame_base.cpp
 )
