@@ -27,6 +27,7 @@ EigenFaces::EigenFaces(const FaceCatalogue &fc, const wxPropertyGridInterface& p
         {
             u += eigenvectors(k, l) * m_fc.get_face(k).to_vector();
         }
+        u.normalize();
         m_eigenfaces.col(l) << u;
         set_info(l, "Index", wxString::Format("%u", l));
         set_info(l, "Eigenvalue", wxString::Format("%f", eigenvalues(l)));
@@ -103,8 +104,12 @@ VectorXf EigenFaces::project(const FaceImage& im, uint32_t dimensionality)
 {
     auto transform_mat = m_eigenfaces.block(0, 0, m_eigenfaces.rows(), dimensionality);
     VectorXf ret = transform_mat.transpose() * (im.to_vector() - m_average_face);
-    ret = ret - VectorXf::Ones(ret.size()) * ret.minCoeff();
-    return ret / ret.maxCoeff();
+    //ret /= dimensionality * 1.0f;
+    //ret += VectorXf::Ones(ret.size()) * 0.5f;
+    /*float max = ret.maxCoeff();
+    float min = ret.minCoeff();
+    printf("-- 1 %f, %f\n", min, max);*/
+    return ret;
 }
 
 std::vector<std::shared_ptr<wxPGProperty> > EigenFaces::get_props()
