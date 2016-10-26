@@ -72,6 +72,7 @@ VectorXf FaceImage::to_vector() const
     return VectorXf(ret);
 }
 
+
 std::unique_ptr<uint8_t[]> FaceImage::to_rgb_buffer() const
 {
     int sz = 0;
@@ -148,6 +149,34 @@ FaceCatalogue::FaceCatalogue(const std::string &path)
             }
         }
     }
+}
+
+MatrixXf FaceCatalogue::get_average_face() const
+{
+    MatrixXf sum = MatrixXf::Zero(get_face(0).get_width() * get_face(0).get_height(), 1);
+    int n = 0;
+    for (uint32_t i = 0; i < get_num_classes(); i++)
+    {
+        for (auto s : get_set_of_class(i, FaceCatalogue::TRAINING_SET))
+        {
+            sum += s->to_vector();
+            n++;
+        }
+    }
+    return sum / n;
+}
+
+MatrixXf FaceCatalogue::get_average_face(uint32_t cls) const
+{
+    MatrixXf sum = MatrixXf::Zero(get_face(0).get_width() * get_face(0).get_height(), 1);
+    int n = 0;
+    for (auto s : get_set_of_class(cls, FaceCatalogue::TRAINING_SET))
+    {
+        sum += s->to_vector();
+        n++;
+    }
+    return sum / n;
+
 }
 
 FaceCatalogue::~FaceCatalogue()

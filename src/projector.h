@@ -74,4 +74,8 @@ public:
     virtual bool update_props(const wxPropertyGridInterface& props);
 
     static std::vector<std::shared_ptr<wxPGProperty> > get_props();
+
+    virtual const MatrixXf& get_projection_matrix() const = 0;
+
+    virtual ~Projector() {}
 };

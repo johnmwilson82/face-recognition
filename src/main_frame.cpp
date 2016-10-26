@@ -239,8 +239,21 @@ void MainFrame::set_projector_props()
         m_projector_choice->GetClientObject(
             m_projector_choice->GetSelection()));
 
-    auto props = factory->get_props();
+    auto prop_iter = m_projector_propgrid->GetIterator();
+    std::vector<wxString> prop_names;
+    while(!prop_iter.AtEnd())
+    {
+        prop_names.push_back(m_projector_propgrid->GetPropertyName(prop_iter.GetProperty()));
+        prop_iter.Next();
+    }
+    for (auto n : prop_names)
+    {
+        m_projector_propgrid->RemoveProperty(n);
+    }
+
     m_projector_props.clear();
+
+    auto props = factory->get_props();
     for (auto p: props)
     {
         m_projector_props.push_back(p);
@@ -260,7 +273,7 @@ void MainFrame::user_init()
 }
 
 MyApp::MyApp() :
-    m_face_catalogue("/home/john/git/face-recognition/data/orl_faces")
+    m_face_catalogue("/home/john/git/face-recognition/data/orl_faces_test")
 {
     m_face_catalogue.autoselect_training_sets(0.7);
 }
@@ -271,7 +284,7 @@ MyApp::~MyApp()
 
 void MyApp::set_projector(const wxPropertyGridInterface& props)
 {
-    m_projector = std::shared_ptr<Projector>(m_projector_factory->create(m_face_catalogue, props));
+    m_projector.reset(m_projector_factory->create(m_face_catalogue, props));
 }
 
 void MyApp::set_projector_factory(ProjectorFactory* factory)

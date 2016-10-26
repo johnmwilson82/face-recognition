@@ -69,4 +69,6 @@ public:
     virtual FaceImage get_face(uint32_t index) const { return *(m_face_images[index]); }
     virtual uint32_t get_num_faces() const { return m_face_images.size(); }
     //virtual const std::string get_name() const { return std::string("Face catalogue"); }
+    MatrixXf get_average_face() const;
+    MatrixXf get_average_face(uint32_t cls) const;
 };

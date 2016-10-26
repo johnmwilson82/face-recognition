@@ -68,7 +68,8 @@ MatrixXf EigenFaces::construct_A_matrix()
     }
     MatrixXf A = MatrixXf(m_fc.get_face(0).get_width() * m_fc.get_face(0).get_height(), num_training_faces);
 
-    get_average_face();
+    m_average_face = m_fc.get_average_face();
+
     int icol = 0;
     for (uint32_t i = 0; i < m_fc.get_num_classes(); i++)
     {
@@ -80,21 +81,6 @@ MatrixXf EigenFaces::construct_A_matrix()
     return A;
 }
 
-void EigenFaces::get_average_face()
-{
-    MatrixXf sum = MatrixXf::Zero(m_fc.get_face(0).get_width() * m_fc.get_face(0).get_height(), 1);
-    int n = 0;
-    for (uint32_t i = 0; i < m_fc.get_num_classes(); i++)
-    {
-        for (auto s : m_fc.get_set_of_class(i, FaceCatalogue::TRAINING_SET))
-        {
-            sum += s->to_vector();
-            n++;
-        }
-    }
-    m_average_face = sum / n;
-}
-
 FaceImage EigenFaces::get_face(uint32_t index) const
 {
     return FaceImage(m_eigenfaces.col(index), m_height, m_width, index);
@@ -104,11 +90,6 @@ VectorXf EigenFaces::project(const FaceImage& im, uint32_t dimensionality)
 {
     auto transform_mat = m_eigenfaces.block(0, 0, m_eigenfaces.rows(), dimensionality);
     VectorXf ret = transform_mat.transpose() * (im.to_vector() - m_average_face);
-    //ret /= dimensionality * 1.0f;
-    //ret += VectorXf::Ones(ret.size()) * 0.5f;
-    /*float max = ret.maxCoeff();
-    float min = ret.minCoeff();
-    printf("-- 1 %f, %f\n", min, max);*/
     return ret;
 }
 

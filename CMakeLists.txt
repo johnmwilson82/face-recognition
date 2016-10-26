@@ -12,6 +12,7 @@ set(SRC
     src/projector.cpp
     src/img_mgr.cpp
     src/eigenfaces.cpp
+    src/fisherfaces.cpp
     src/mlp.cpp
     src/report.cpp
     src/result.cpp
